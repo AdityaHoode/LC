@@ -1,0 +1,20 @@
+select a.product_id, coalesce(round(sum(coalesce(b.units,0) * a.price)/sum(coalesce(b.units, 0)), 2), 0) as average_price from prices a left join unitssold b on a.product_id=b.product_id and coalesce(b.purchase_date, '1999-01-01') between a.start_date and a.end_date group by a.product_id
+
+-- R1
+with base as (
+    select
+    a.product_id,
+    a.price*b.units as sale,
+    b.units
+    from
+    prices a
+    left join unitssold b
+    on a.product_id=b.product_id
+    and b.purchase_date between a.start_Date and a.end_date
+)
+select
+product_id,
+coalesce(round(sum(sale)/sum(units),2),0) as average_price
+from
+base
+group by product_id

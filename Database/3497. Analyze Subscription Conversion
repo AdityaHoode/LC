@@ -1,0 +1,44 @@
+select
+a.user_id,
+ftavg as trial_avg_duration ,
+pavg as paid_avg_duration 
+from
+(select 
+user_id
+,round(avg(activity_duration),2) as ftavg
+from useractivity
+where activity_type='free_trial'
+group by user_id) a
+inner join 
+(select 
+user_id
+,round(avg(activity_duration),2) as pavg
+from useractivity
+where activity_type='paid'
+group by user_id) b
+on a.user_id=b.user_id
+
+-- R1
+with base as (
+    select
+    *,
+    lead(activity_type,1,activity_type) over (partition by user_id order by activity_date) as ld
+    from useractivity
+),
+c1 as (
+    select
+    distinct user_id
+    from base
+    where activity_type='free_trial' and ld='paid'
+)
+select 
+user_id,
+round(avg(case when activity_type='free_trial' then activity_duration end),2) as trial_avg_duration,
+round(avg(case when activity_type='paid' then activity_duration end),2) as paid_avg_duration
+from useractivity
+where user_id in (
+    select user_id from c1
+)
+group by user_id
+order by user_id
+

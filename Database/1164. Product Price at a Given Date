@@ -1,0 +1,45 @@
+select 
+distinct a.product_id,
+coalesce(b.new_price, 10) as price
+from (select distinct product_id from products) a 
+left join
+(
+    select * from (
+        select 
+        product_id
+        ,change_date
+        ,new_price
+        ,row_number() over (partition by product_id order by change_date desc) as rn
+        from products
+        where change_date <= '2019-08-16'
+    ) ssq where rn=1
+) b
+on a.product_id=b.product_id
+
+-- R1
+with base as (
+    select 
+    *
+    from products 
+    where change_date<='2019-08-16'
+),
+c1 as (
+    select 
+    *,
+    first_value(new_price) over (partition by product_id order by change_date desc) as latest_price
+    from base
+),
+c2 as (
+    select 
+    product_id,
+    max(latest_price) as price
+    from c1
+    group by product_id
+)
+select 
+a.product_id,
+coalesce(b.price,10) as price
+from products a
+left join c2 b
+on a.product_id=b.product_id
+group by a.product_id
