@@ -1,0 +1,20 @@
+select
+b.name, sum(a.amount) as balance
+from
+transactions a
+inner join
+users b
+on a.account=b.account
+group by a.account
+having sum(a.amount)>10000
+
+-- R1
+
+select
+b.name,
+sum(a.amount) as balance
+from transactions a
+inner join users b
+on a.account=b.account
+group by a.account
+having sum(a.amount)>10000

@@ -42,6 +42,33 @@
 #         continue
 #     print(i)
 
-l=[1,1,2,3,4,5,7,7,6]
-s=set(l)
-print(s,len(s))
+# l=[1,1,2,3,4,5,7,7,6]
+# s=set(l)
+# print(s,len(s))
+
+# for i in range(1,3):
+#     print(i)
+
+# l=[1,2,3,4,5,6]
+# print(l[2:].index(4))
+
+# from collections import Counter
+# d={'act': Counter({'a': 1, 'c': 1, 't': 1}), 'pots': Counter({'p': 1, 'o': 1, 't': 1, 's': 1}), 'tops': Counter({'t': 1, 'o': 1, 'p': 1, 's': 1}), 'cat': Counter({'c': 1, 'a': 1, 't': 1}), 'stop': Counter({'s': 1, 't': 1, 'o': 1, 'p': 1}), 'hat': Counter({'h': 1, 'a': 1, 't': 1})}
+# for k,v in d.items():
+#     print(k,v)
+
+# l=['vbg','fgr','dsa']
+# sl=[''.join(sorted(i)) for i in l]
+# print(sl)
+
+l1=[""]
+l2=[]
+o1a=' '.join(l1)
+o1b=o1a.split()
+o2a=' '.join(l2)
+o2b=o2a.split()
+print(o1a)
+print(o1b)
+print('------------------------------')
+print(o2a)
+print(o2b)
