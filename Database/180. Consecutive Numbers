@@ -1,0 +1,34 @@
+with cte as (
+  select
+    id,
+    num,
+    lag(num, 1) over(order by id) as prev_num,
+    lag(num, 2) over(order by id) as prev_prev_num
+  from logs
+)
+select distinct num as ConsecutiveNums from cte
+where num = prev_num 
+  and num = prev_prev_num
+
+select
+*
+from logs a
+inner join logs b
+on a.num = b.num and a.id + 1=b.id
+inner join logs c
+on b.num = c.num and b.id+ 1 = c.id 
+
+-- R1
+with base as 
+(
+    select
+    *,
+    lead(num,1) over (order by id) as n,
+    lead(num,2) over (order by id) as nn,
+    lead(num,3) over (order by id) as nnn
+    from logs
+)
+select
+distinct num as ConsecutiveNums
+from base
+where num=n and n=nn

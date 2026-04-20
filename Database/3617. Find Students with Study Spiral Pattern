@@ -1,1 +1,55 @@
-975. Odd Even Jump
+with c1 as (
+    select
+    *,
+    row_number() over (partition by student_id order by session_date) as rn,
+    datediff(lead(session_date,1,session_Date) over (partition by student_id order by session_date),session_Date) as gap_days
+    from study_sessions
+),
+c2 as (
+    select 
+    *,
+    abs(rn - min(rn) over (partition by student_id, subject order by session_date)) as rep
+    from c1
+    order by session_id
+),
+c3 as (
+    select
+    student_id,
+    count(distinct subject) as d_sub
+    from c2 
+    group by student_id
+),
+c4 as (
+    select 
+    a.*,
+    b.d_sub
+    from c2 a 
+    left join c3 b
+    on a.student_id=b.student_id
+),
+c5 as (
+    select * from c4 where student_id not in (
+        select distinct student_id from c4 where rep%d_sub!=0
+    )
+),
+c6 as (
+    select
+    student_id,
+    count(distinct subject) as cycle_length,
+    sum(hours_studied) as total_study_hours 
+    from c5
+    group by student_id
+    having count(distinct subject)>=3
+    and count(*)/count(distinct subject)>=2
+    and max(gap_days)<=2
+)
+select 
+a.student_id,
+student_name,
+b.major,
+cycle_length,
+total_study_hours
+from c6 a
+inner join students b
+on a.student_id=b.student_id
+order by cycle_length desc, total_study_hours desc  

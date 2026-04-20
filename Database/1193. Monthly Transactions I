@@ -1,0 +1,51 @@
+with c1 as
+(
+    select 
+    *, date_format(trans_date, '%Y-%m') as my
+    from transactions
+),
+c2 as 
+(
+    select my, country,
+    count(*) as trans_count,
+    sum(amount) as trans_total_amount
+    from c1
+    group by my, country
+),
+c3 as 
+(
+    select my, country,
+    count(*) as approved_count,
+    sum(amount) as approved_total_amount 
+    from c1
+    where state='approved'
+    group by my, country
+)
+select 
+a.my as month,
+a.country,
+trans_count,
+coalesce(approved_count,0) as approved_count,
+trans_total_amount,
+coalesce(approved_total_amount,0) as approved_total_amount
+from c2 a
+left join c3 b
+on a.my=b.my
+and coalesce(a.country,'')=coalesce(b.country,'')
+
+-- R1
+with base as (
+    select *, date_format(trans_date, '%Y-%m') as month from transactions
+),
+c1 as (
+    select 
+    month,
+    country,
+    count(*) as trans_count,
+    count(case when state='approved' then 1 end) as approved_count,
+    sum(amount) as trans_total_amount,
+    sum(case when state='approved' then amount else 0 end) as approved_total_amount
+    from base 
+    group by month, country
+)
+select * from c1
