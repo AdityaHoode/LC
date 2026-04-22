@@ -1,0 +1,20 @@
+select 
+*
+from
+users
+where
+1=1
+and email like '%@%'
+and ((substring_index(email, '@', 1) not like '%@%') and (substring_index(email, '@', -1) not like '%@%'))
+and right(email, 4) = '.com' 
+and not regexp_like(substring_index(email, '@', 1), '[^a-zA-Z0-9_]', 'i')
+and substring_index(substring_index(email, '@', -1), '.', 1) <> ''
+and not regexp_like(substring_index(substring_index(email, '@', -1), '.', 1), '[^a-zA-Z]', 'i')
+order by user_id
+
+-- R1
+select
+*
+from users
+where regexp_like(email, '^[a-zA-Z0-9_]+@{1}[a-zA-Z]+\\.com$')
+order by user_id

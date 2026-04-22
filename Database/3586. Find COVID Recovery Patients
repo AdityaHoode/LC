@@ -1,0 +1,83 @@
+with base as (
+    select *
+    from covid_tests 
+    where patient_id in (
+        select 
+        patient_id
+        from covid_tests
+        where result!='Inconclusive'
+        group by patient_id
+        having count(distinct result)=2
+    )
+),
+c1 as (
+    select 
+    patient_id,
+    min(test_date) as first_positive_date
+    from base
+    where result='Positive'
+    group by patient_id
+),
+c2 as (
+    select 
+    a.patient_id,
+    min(a.test_date) as first_negative_date
+    from base a
+    left join c1 b
+    on a.patient_id=b.patient_id
+    where a.result='Negative' and a.test_date>b.first_positive_date
+    group by a.patient_id
+)
+select
+c.patient_id,
+e.patient_name,
+e.age,
+datediff(first_negative_date, first_positive_date) as recovery_time
+from c1 c
+inner join c2 d
+on c.patient_id=d.patient_id
+left join patients e
+on c.patient_id=e.patient_id
+order by recovery_time, patient_name
+
+-- R1
+with base as (
+    select *
+    from covid_tests
+    where patient_id in (
+        select 
+        patient_id
+        from covid_tests
+        group by patient_id
+        having count(distinct result)>1
+    )
+),
+c1 as (
+    select
+    patient_id,
+    min(test_Date) as pos_date
+    from base
+    where result='Positive'
+    group by patient_id, result
+),
+c2 as (
+    select
+    a.patient_id,
+    min(a.test_Date) as neg_date
+    from base a
+    left join c1 b
+    on a.patient_id=b.patient_id
+    where a.result='Negative' and a.test_date>b.pos_date
+    group by a.patient_id, a.result
+)
+select
+a.patient_id,
+patient_name,
+age,
+datediff(neg_date,pos_date) as recovery_time
+from c1 a
+inner join c2 b
+on a.patient_id=b.patient_id
+left join patients c
+on a.patient_id=c.patient_id
+order by recovery_time, patient_name

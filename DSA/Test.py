@@ -61,14 +61,18 @@
 # sl=[''.join(sorted(i)) for i in l]
 # print(sl)
 
-l1=[""]
-l2=[]
-o1a=' '.join(l1)
-o1b=o1a.split()
-o2a=' '.join(l2)
-o2b=o2a.split()
-print(o1a)
-print(o1b)
-print('------------------------------')
-print(o2a)
-print(o2b)
+# l1=[""]
+# l2=[]
+# o1a=' '.join(l1)
+# o1b=o1a.split()
+# o2a=' '.join(l2)
+# o2b=o2a.split()
+# print(o1a)
+# print(o1b)
+# print('------------------------------')
+# print(o2a)
+# print(o2b)
+
+s="3#adi3#hoo"
+s1=""
+print(s[1:2])
