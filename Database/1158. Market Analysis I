@@ -1,0 +1,32 @@
+select
+user_id as buyer_id,
+join_date,
+coalesce(orders_in_2019, 0) as orders_in_2019
+from users a
+left join 
+(
+    select 
+    buyer_id,
+    count(*) as orders_in_2019 
+    from orders
+    where order_Date between '2019-01-01' and '2019-12-31'
+    group by buyer_id
+) b
+on a.user_id=b.buyer_id
+
+-- R1
+with base as (
+    select
+    buyer_id,
+    count(*) as orders_in_2019
+    from orders
+    where order_date between '2019-01-01' and '2019-12-31'
+    group by buyer_id
+)
+select
+a.user_id as buyer_id,
+join_date,
+coalesce(orders_in_2019,0) as orders_in_2019
+from users a 
+left join base b
+on a.user_id=b.buyer_id 

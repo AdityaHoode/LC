@@ -73,6 +73,15 @@
 # print(o2a)
 # print(o2b)
 
-s="3#adi3#hoo"
-s1=""
-print(s[1:2])
+# s="3#adi3#hoo"
+# s1=""
+# print(s[1:2])
+
+# s=[1,2,3,4,5]
+# for i in range(len(s)-1, -1, -1):
+#     print(i)
+
+from collections import Counter
+l=[]
+c = Counter(l)
+print(c.total())
