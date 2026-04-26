@@ -1,0 +1,79 @@
+with base as (
+    select
+    *
+    from performance_reviews
+    where employee_id in (
+        select 
+        employee_id
+        from performance_reviews
+        group by employee_id
+        having count(*)>=3
+    )
+),
+c1 as (
+    select 
+    *,
+    row_number() over (partition by employee_id order by review_date desc) as rn
+    from base
+),
+c2 as (
+    select 
+    *
+    from c1 
+    where rn in (1,2,3)
+),
+c3 as (
+    select
+    employee_id,
+    max(case when rn=1 then rating end) as review_3,
+    max(case when rn=2 then rating end) as review_2,
+    max(case when rn=3 then rating end) as review_1
+    from c2 
+    group by employee_id
+    order by employee_id
+),
+c4 as (
+    select 
+    *,
+    case when review_1<review_2 and review_2<review_3 then 1 else 0 end as is_inc,
+    review_3-review_1 as improvement_score
+    from c3
+)
+select 
+a.employee_id,
+b.name,
+improvement_score
+from c4 a
+left join employees b
+on a.employee_id = b.employee_id
+where is_inc=1
+order by improvement_score desc, b.name
+
+
+-- R1   
+with base as (
+    select
+    *,
+    row_number() over (partition by employee_id order by review_date desc) as rn,
+    lead(rating,1,null) over (partition by employee_id order by review_date desc) as r2,
+    lead(rating,2,null) over (partition by employee_id order by review_date desc) as r3
+    from performance_reviews
+),
+c1 as (
+    select 
+    employee_id,
+    rating-r3 as improvement_score
+    from base     
+    where rn=1
+    and r2 is not null
+    and r3 is not null
+    and rating>r2 and r2>r3
+)
+select 
+a.employee_id,
+name,
+improvement_score
+from employees a
+inner join c1 b
+on a.employee_id=b.employee_id
+order by improvement_score desc, name

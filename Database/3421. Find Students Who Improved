@@ -1,0 +1,59 @@
+with c1 as 
+(
+    select 
+    *,
+    row_number() over(partition by student_id, subject order by exam_date) as rn
+    from
+    scores
+),
+c2 as 
+(
+    select 
+    *,
+    row_number() over(partition by student_id, subject order by exam_date desc) as rn
+    from
+    scores
+),
+c3 as 
+(
+    select 
+    a.student_id,
+    a.subject,
+    a.score as first_score,
+    b.score as latest_score
+    from c1 a
+    inner join c2 b
+    on a.student_id=b.student_id
+    and a.subject=b.subject
+    and a.rn=1
+    and b.rn=1 
+    where b.score>a.score
+)
+select * from c3
+
+-- R1 
+
+with base as (
+    select *,
+    first_value(score) over (partition by student_id, subject order by exam_date) as fs,
+    last_value(score) over (partition by student_id, subject order by exam_date rows between unbounded preceding and unbounded following) as ls
+    from scores where student_id in (
+        select
+        student_id
+        from scores
+        group by student_id, subject
+        having count(distinct exam_date)>=2
+    )
+),
+c1 as (
+    select
+    distinct
+    student_id,
+    subject,
+    fs as first_score,
+    ls as latest_score
+    from base 
+    where ls>fs
+    order by student_id, subject
+)
+select * from c1
