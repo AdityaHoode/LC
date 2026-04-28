@@ -1,0 +1,50 @@
+select
+    id,
+    sum(rel) as num
+from
+    (
+        select
+            requester_id as id,
+            count(*) as rel
+        from
+            RequestAccepted
+        group by
+            requester_id
+        union
+        all
+        select
+            accepter_id as id,
+            count(*) as rel
+        from
+            RequestAccepted
+        group by
+            accepter_id
+    ) res
+group by
+    id
+order by
+    num desc
+limit
+    1
+
+-- R1
+
+select 
+id,
+sum(num) as num
+from (
+    select
+    requester_id as id,
+    count(*) as num
+    from requestaccepted 
+    group by requester_id
+    union all
+    select
+    accepter_id as id,
+    count(*) as num
+    from requestaccepted 
+    group by accepter_id
+) a
+group by id
+order by num desc
+limit 1

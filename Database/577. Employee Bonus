@@ -1,0 +1,29 @@
+select
+    a.name,
+    b.bonus
+from
+    employee a
+    left join bonus b on a.empId = b.empId
+where
+    b.bonus < 1000
+    or b.empId is null
+
+-- R1
+with c1 as (
+    select
+    name,
+    null as bonus
+    from employee a
+    where not exists (
+        select
+        *
+        from bonus b
+        where a.empId=b.empId
+    )
+),
+c2 as (
+    select name, bonus from bonus a inner join employee b on a.empid=b.empid where bonus<1000
+)
+select * from c1
+union all
+select * from c2

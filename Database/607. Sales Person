@@ -1,0 +1,36 @@
+with c2 as (
+    select
+        distinct sales_id
+    from
+        orders
+    where
+        com_id = (
+            select
+                com_id
+            from
+                company
+            where
+                name = 'RED'
+        )
+)
+select
+    a.name
+from
+    salesperson a
+    left join c2 b on a.sales_id = b.sales_id
+where
+    b.sales_id is null
+
+-- R1
+select
+name
+from salesperson a
+where not exists (
+    select
+    1
+    from orders b 
+    where a.sales_id=b.sales_id 
+    and com_id = (
+        select com_id from company where name='RED'
+    )
+)
