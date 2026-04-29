@@ -1,0 +1,23 @@
+-- select
+-- *,
+-- case
+-- when 
+--     mail like '%@leetcode.com' and 
+--     (substring_index(mail, '@leetcode.com', 1) like '%\_%' or 
+--     substring_index(mail, '@leetcode.com', 1) like '%.%' or
+--     substring_index(mail, '@leetcode.com', 1) like '%-%') and
+--     not mail regexp '^[^a-zA-Z]'
+--     then 1
+--     else 0
+-- end as is_valid
+-- from users
+
+SELECT *
+FROM Users
+WHERE REGEXP_LIKE(mail, '^[a-zA-Z][a-zA-Z0-9_.-]*@leetcode\\.com$', 'c');
+
+-- R1
+select
+*
+from users
+where regexp_like(mail, '(?=^[a-zA-Z]{1}[a-zA-Z0-9_\\.-]*@leetcode\\.com$)', 'c')

@@ -1,0 +1,73 @@
+with base as (
+    select 
+    *,
+    substring_index(ip,'.',1) as o1,
+    substring_index(substring_index(ip,'.',2),'.',-1) as o2,
+    substring_index(substring_index(ip,'.',3),'.',-1) as o3,
+    substring_index(ip,'.',-1) as o4
+    from logs
+),
+c1 as (
+    select
+    log_id,
+    ip,
+    case
+        when cast(o1 as unsigned)>255
+            or cast(o2 as unsigned)>255
+            or cast(o3 as unsigned)>255
+            or cast(o4 as unsigned)>255
+        then 1
+        else 0
+    end as h1,
+    case 
+        when o1 like '0%'
+            or o2 like '0%'
+            or o3 like '0%'
+            or o4 like '0%'
+        then 1
+        else 0
+    end as h2,
+    regexp_like(ip, '^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$')<=0 as h3
+    from base
+),
+c2 as (
+    select
+    ip,
+    case 
+        when h1=1 or h2=1 or h3=1 then 1 else 0
+    end as invalid
+    from c1
+)
+select 
+ip,
+count(*) as invalid_count
+from c2
+where invalid>0
+group by ip
+order by invalid_count desc, ip desc
+
+-- R1
+with base as (
+    select
+    *,
+    substring_index(ip, '.', 1) as o1,
+    substring_index(substring_index(ip, '.', 2), '.', -1) as o2,
+    substring_index(substring_index(ip, '.', 3), '.', -1) as o3,
+    substring_index(substring_index(ip, '.', 4), '.', -1) as o4
+    from logs
+),
+c1 as (
+    select
+    *
+    from base
+    where 1=1
+    and cast(o1 as unsigned)>255 or cast(o2 as unsigned)>255 or cast(o3 as unsigned)>255 or cast(o4 as unsigned)>255
+    or regexp_like(o1, '^0+') or regexp_like(o2, '^0+') or regexp_like(o3, '^0+') or regexp_like(o4, '^0+')
+    or not regexp_like(ip, '^[0-9]*\\.{1}[0-9]*\\.{1}[0-9]*\\.{1}[0-9]*$')
+)
+select 
+ip, 
+count(*) as invalid_count 
+from c1
+group by ip
+order by invalid_count desc, ip desc

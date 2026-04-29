@@ -1,0 +1,28 @@
+-- select max(salary) as SecondHighestSalary from (
+--     select
+--     salary,
+--     dense_rank() over (order by salary desc) as rn
+--     from
+--     employee
+-- ) a
+-- where rn=2
+-- limit 1
+
+
+select (select 
+distinct salary as SecondHighestSalary 
+from 
+employee
+order by salary desc
+limit 1 offset 1) as SecondHighestSalary
+
+-- R1
+select 
+coalesce(max(salary),null) as secondhighestsalary
+from (
+    select
+    *,
+    dense_rank() over (order by salary desc) as dr
+    from employee
+) a
+where dr=2
