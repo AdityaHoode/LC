@@ -1,0 +1,79 @@
+with c1 as (
+    select
+        count(distinct player_id) as total_count
+    from
+        activity
+),
+c2 as (
+    select
+        player_id,
+        event_date,
+        row_number() over (
+            partition by player_id
+            order by
+                event_date asc
+        ) as rn
+    from
+        activity
+),
+c3 as (
+    select
+        distinct player_id,
+        datediff(
+            event_date,
+            lag(event_date) over (
+                partition by player_id
+                order by
+                    event_date asc
+            )
+        ) as gap_days
+    from
+        c2
+    where
+        rn in (1, 2)
+)
+select
+    cast(
+        coalesce(
+            count(distinct c3.player_id) /(c1.total_count),
+            0
+        ) as decimal(8, 2)
+    ) as fraction
+from
+    c3
+    cross join c1
+where
+    c3.gap_days = 1 
+    
+-- R1
+with base as (
+    select
+        player_id,
+        event_date,
+        datediff(
+            event_date,
+            min(event_date) over (partition by player_id)
+        ) as gap_day
+    from
+        activity
+),
+c1 as (
+    select
+        count(distinct player_id) as total_players
+    from
+        activity
+)
+select
+    round(
+        count(distinct player_id) /(
+            select
+                total_players
+            from
+                c1
+        ),
+        2
+    ) as fraction
+from
+    base
+where
+    gap_day = 1

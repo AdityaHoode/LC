@@ -1,0 +1,72 @@
+with base as (
+    select
+    *
+    from
+    inventory
+    where store_id in (
+        select 
+        store_id
+        from
+        inventory
+        group by store_id
+        having count(*)>=3
+    )
+),
+c1 as (
+    select 
+    *,
+    first_value(price) over (partition by store_id order by price desc) as ep,
+    first_value(price) over (partition by store_id order by price) as cp
+    from base
+),
+c2 as (
+    select 
+    a.store_id,
+    c.store_name,
+    c.location,
+    a.product_name as most_exp_product,
+    b.product_name as cheapest_product,
+    round(b.quantity/a.quantity,2) as imbalance_ratio
+    from 
+    (select * from c1 where price = ep) a
+    inner join (select * from c1 where price = cp) b
+    on a.store_id=b.store_id
+    left join stores c
+    on a.store_id=c.store_id
+    where a.quantity<b.quantity
+    order by imbalance_ratio desc, store_name 
+)
+select * from c2
+
+-- R1
+with b1 as (
+    select
+    *,
+    first_value(price) over (partition by store_id order by price) as cheapest,
+    last_value(price) over (partition by store_id order by price rows between unbounded preceding and unbounded following) as expensive,
+    count(*) over (partition by store_id) as cnt
+    from inventory
+),
+b2 as (
+    select
+    store_id,
+    max(case when price=cheapest then product_name end) as cheapest_product,
+    max(case when price=expensive then product_name end) as most_exp_product,
+    max(case when price=cheapest then quantity end) as cheapest_quantity,
+    max(case when price=expensive then quantity end) as most_exp_quantity
+    from b1
+    where (price=cheapest or price=expensive) and cnt>=3
+    group by store_id
+)
+select
+a.store_id,
+store_name,
+location,
+most_exp_product,
+cheapest_product,
+round(cheapest_quantity/most_exp_quantity,2) as imbalance_ratio
+from b2 a
+inner join stores b
+on a.store_id=b.store_id
+where cheapest_quantity>most_exp_quantity
+order by imbalance_ratio desc, store_name
