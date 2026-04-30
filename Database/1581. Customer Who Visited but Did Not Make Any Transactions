@@ -1,0 +1,20 @@
+select 
+customer_id, count(*) as count_no_trans
+from 
+visits
+where 
+visit_id not in (select distinct visit_id from transactions)
+group by customer_id
+
+-- R1
+select
+customer_id,
+count(*) as count_no_trans
+from visits a
+where not exists (
+    select
+    *
+    from transactions b
+    where a.visit_id=b.visit_id
+) 
+group by customer_id

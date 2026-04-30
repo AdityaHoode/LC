@@ -1,5 +1,7 @@
-from collections import Counter
+# from collections import Counter
 
-l=[]
-c=Counter(l)
-print(l is None)
+# l=[]
+# c=Counter(l)
+# print(l is None)
+
+print(4%3)

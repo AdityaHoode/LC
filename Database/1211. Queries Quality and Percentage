@@ -1,0 +1,30 @@
+with c1 as
+(select query_name, round(sum(rating/position)/count(*),2) as quality from queries group by query_name),
+c2 as
+(select query_name, count(*) as pq from queries where rating < 3 group by query_name),
+c3 as
+(select query_name, count(*) as ttl from queries group by query_name),
+c4 as
+(select c3.query_name, coalesce(pq, 0)/ttl*100 as poor_query_percentage 
+ from c3 left join c2 
+ on c3.query_name=c2.query_name)
+select c1.query_name, c1.quality, round(c4.poor_query_percentage,2) as poor_query_percentage from c1 join c4 on c1.query_name=c4.query_name
+
+-- R1
+select 
+query_name,
+round(quality,2) as quality,
+round((sum(pq)/count(*))*100,2) as poor_query_percentage
+from (
+    select
+    *,
+    sum(rating/position) over (partition by query_name)/count(*) over (partition by query_name) as quality,
+    case when rating<3 then 1 else 0 end as pq
+    from queries
+) a
+group by query_name
+
+
+
+
+

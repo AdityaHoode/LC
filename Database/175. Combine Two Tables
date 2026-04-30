@@ -1,0 +1,18 @@
+select
+    a.firstName,
+    a.lastName,
+    b.city,
+    b.state
+from
+    person a
+    left join address b on a.personId = b.personId
+
+-- R1
+select
+firstname,
+lastname,
+city, 
+state
+from person a 
+left join address b
+on a.personId=b.personId

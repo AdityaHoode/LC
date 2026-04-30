@@ -53,3 +53,80 @@ from c6 a
 inner join students b
 on a.student_id=b.student_id
 order by cycle_length desc, total_study_hours desc  
+
+-- R1
+with base as (
+    select 
+    *,
+    datediff(lead(session_date,1,session_date) over (partition by student_id order by session_Date), session_date) as gap_days
+    from study_sessions a where exists (
+        select
+        1
+        from study_sessions b
+        where a.student_id=b.student_id
+        group by student_id
+        having count(distinct subject)>=3 and count(*)>=count(distinct subject)*2 
+        order by student_id
+    )
+),
+base2 as (
+    select * from base a where not exists (
+        select 1 
+        from base b 
+        where a.student_id=b.student_id
+        group by student_id
+        having max(gap_Days)>2
+    )
+),
+c1 as (
+    select 
+    *,
+    row_number() over (partition by student_id order by session_Date) as sub_order
+    from base2
+),
+c2 as (
+    select 
+    *,
+    min(sub_order) over (partition by student_id, subject order by session_date) as sub_first_occurance 
+    from c1
+),
+c3 as (
+    select 
+    *,
+    abs(sub_order-sub_first_occurance) as rep
+    from c2
+),
+dis_sub as (
+    select
+    student_id,
+    count(distinct subject) as cds
+    from c3 
+    group by student_id
+),
+c4 as (
+    select *
+    from c3 c
+    where not exists (
+        select
+        distinct a.student_id
+        from c3 a
+        inner join dis_sub b
+        on a.student_id=b.student_id
+        where rep%cds!=0
+        and c.student_id=a.student_id
+    )
+),
+res as (
+    select 
+    a.student_id,
+    student_name,
+    major,
+    count(distinct subject) as cycle_length,
+    sum(hours_studied) as total_study_hours
+    from c4 a
+    inner join students b
+    on a.student_id=b.student_id
+    group by a.student_id
+    order by cycle_length desc, total_study_hours desc
+)
+select * from res
