@@ -24,3 +24,13 @@ class Solution:
             if target-nums[i] in nums[:i] or target-nums[i] in nums[i+1:]:
                 op.append(i)
         return op
+    
+# Recommended TS complexity
+from collections import defaultdict
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        seen={}
+        for i in range(len(nums)):
+            if target-nums[i] in seen:
+                return [seen[target-nums[i]], i]
+            seen[nums[i]]=i

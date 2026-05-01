@@ -1,0 +1,35 @@
+with b1 as (
+    select
+    *,
+    count(*) over (partition by user_id, action) as cnt,
+    datediff(action_date,lag(action_date,1,action_date) over (partition by user_id, action order by action_date)) as gap_days
+    from activity
+),
+b2 as (
+    select 
+    *
+    from b1
+    where cnt>=5
+),
+b3 as (
+    select 
+    *
+    from b2 a
+    where not exists (
+        select 
+        1
+        from b2 b
+        where a.user_id=b.user_id 
+        group by b.user_id
+        having max(gap_days)>1
+    )
+)
+select 
+user_id,
+max(action) as action,
+max(cnt) as streak_length,
+min(action_date) as start_date,
+max(action_date) as end_date
+from b3
+group by user_id
+order by 3 desc, 1
