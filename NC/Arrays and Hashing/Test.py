@@ -12,9 +12,15 @@
 # for i in range(len(l)-1,0,-1):
 #     for j in l[i]:
 #         o.append(j)
-# print(o)
+# print(o)  
 
 
-for i in range(10):
-    i+=2
-    print(i)
+# for i in range(10):
+#     i+=2
+#     print(i)
+
+for i in range(9):
+    for j in range(9):
+        print(f"Row={i},{j}")
+        print(f"Col={j},{i}")
+    print("--------------------")
