@@ -1,0 +1,25 @@
+select
+    player_id,
+    event_date as first_login
+from
+    (
+        select
+            player_id,
+            event_date,
+            row_number() over (
+                partition by player_id
+                order by
+                    event_date asc
+            ) as rn
+        from
+            activity
+    ) as subquery
+where
+    rn = 1
+
+-- R1
+select
+distinct
+player_id,
+first_value(event_date) over (partition by player_id order by event_date asc) as first_login
+from activity

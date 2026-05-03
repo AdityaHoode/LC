@@ -1,0 +1,53 @@
+with base as 
+(
+    select
+    employee_id,
+    week
+    from 
+    (
+        select 
+        *,
+        yearweek(meeting_date,1) as week
+        from meetings
+    ) a
+    group by employee_id, week
+    having sum(duration_hours)>20
+)
+select 
+a.employee_id,
+b.employee_name,
+b.department,
+count(*) as meeting_heavy_weeks 
+from base a
+left join employees b 
+on a.employee_id=b.employee_id
+group by a.employee_id
+having meeting_heavy_weeks>=2
+order by meeting_heavy_weeks desc, b.employee_name
+
+-- R1
+with base as (
+    select
+    *,
+    yearweek(meeting_date,1) as wk
+    from meetings
+),
+c1 as (
+    select 
+    employee_id,
+    wk
+    from base
+    group by 1,2
+    having sum(duration_hours)>20
+)
+select 
+a.employee_id,
+employee_name,
+department,
+count(*) as meeting_heavy_weeks
+from c1 a
+inner join employees b
+on a.employee_id=b.employee_id
+group by 1
+having meeting_heavy_weeks>=2
+order by 4 desc, 2 asc
