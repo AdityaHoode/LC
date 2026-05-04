@@ -1,0 +1,62 @@
+select 
+a.category,
+coalesce(b.accounts_count,0) as accounts_count
+from
+(
+    select 'Low Salary' as category, 0 as accounts_count
+    union
+    select 'Average Salary' as category, 0 as accounts_count
+    union
+    select 'High Salary' as category, 0 as accounts_count
+) a
+left join
+(
+    select 
+    category,
+    count(*) as accounts_count
+    from
+    (
+        select *,
+        case 
+            when income<20000 then 'Low Salary'
+            when income>=20000 and income<=50000 then 'Average Salary'
+            when income>50000 then 'High Salary'
+            else 0
+        end as category
+        from accounts
+    ) a
+    group by category
+) b
+on a.category=b.category
+
+-- R1
+with base as (
+    select
+    case 
+        when income<20000 then 'Low Salary' 
+        when income>=20000 and income<=50000 then 'Average Salary'
+        else 'High Salary'
+    end as category
+    from accounts
+    union all
+    (
+        select
+        'Low Salary' as category
+        union
+        select
+        'Average Salary' as category
+        union
+        select
+        'High Salary' as category
+    )
+),
+c1 as (
+    select
+    category,
+    count(*)-1 as accounts_count
+    from base
+    group by 1
+)
+select 
+*
+from c1

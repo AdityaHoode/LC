@@ -1,0 +1,19 @@
+select teacher_id, sum(cnt) as cnt from (select 
+teacher_id, count(distinct subject_id) as cnt
+from 
+teacher
+group by subject_id, teacher_id) a
+group by teacher_id
+
+-- R1
+select
+teacher_id,
+count(*) as cnt
+from (
+    select
+    distinct
+    teacher_id, 
+    subject_id
+    from teacher
+) a
+group by teacher_id

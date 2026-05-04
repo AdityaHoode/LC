@@ -1,0 +1,52 @@
+select employee_id from (
+    select employee_id from employees
+    union
+    select employee_id from salaries
+) x
+where x.employee_id not in (select
+a.employee_id 
+from employees a
+inner join salaries b
+on a.employee_id=b.employee_id)
+order by x.employee_id
+
+-- R1
+with base as (
+    select employee_id from employees
+    union
+    select employee_id from salaries
+),
+c1 as (
+    select employee_id 
+    from base a
+    where not exists (
+        select 1 from employees b where a.employee_id=b.employee_id
+    )
+),
+c2 as (
+    select employee_id 
+    from base a
+    where not exists (
+        select 1 from salaries b where a.employee_id=b.employee_id
+    )
+)
+select employee_id from c1
+union 
+select employee_id from c2
+order by employee_id
+
+with base as (
+    select employee_id from employees
+    union
+    select employee_id from salaries
+)
+select employee_id from base c
+where not exists (
+    select a.employee_id
+    from salaries a
+    inner join employees b
+    on a.employee_id=b.employee_id
+    where a.employee_id=c.employee_id
+    and c.employee_id=b.employee_id
+)
+order by 1
