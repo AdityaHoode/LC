@@ -1,0 +1,63 @@
+with c1 as 
+(
+    select name as results
+    from movierating a
+    inner join users b
+    on a.user_id=b.user_id
+    group by a.user_id
+    order by count(*) desc, name asc
+    limit 1
+),
+c2 as 
+(
+    select title as results
+    from movierating a
+    inner join movies b
+    on a.movie_id=b.movie_id
+    where created_at between '2020-02-01' and '2020-02-29'
+    group by a.movie_id
+    order by avg(rating) desc, title asc
+    limit 1
+),
+c3 as
+(
+    select * from c1 union all select * from c2 
+)
+select * from c3
+
+-- R1
+with base as (
+    select
+    a.*,
+    b.name as user_name,
+    title,
+    count(*) over (partition by user_id) as rcnt,
+    avg(case when month(created_at)=2 and year(created_at)=2020 then rating end) over (partition by movie_id) as ravg
+    from movierating a
+    inner join users b
+    on a.user_id=b.user_id
+    inner join movies c
+    on a.movie_id=c.movie_id
+),
+c1 as (
+    select
+    *,
+    dense_rank() over (order by rcnt desc, user_name) as urnk,
+    dense_rank() over (order by ravg desc, title) as mrnk
+    from base
+    order by user_id
+)
+(
+    select 
+    user_name as results
+    from c1 
+    where urnk=1
+    limit 1 
+)
+union all
+(
+    select title as results 
+    from c1 
+    where mrnk=1
+    limit 1
+)

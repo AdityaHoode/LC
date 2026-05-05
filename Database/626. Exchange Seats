@@ -1,0 +1,27 @@
+select
+case
+    when id%2<>0 then lead(id,1,id) over (order by id)
+    else lag(id,1,id) over (order by id)
+end as id,
+student
+from 
+seat
+order by id
+
+-- R1`
+with base as (
+    select
+    case 
+        when id%2<>0 then (case when id<max(id) over () then id+1 else id end) else id-1 
+    end 
+    as new_id,
+    student
+    from seat
+)
+select
+new_id as id,
+a.student
+from base a
+left join seat b
+on a.new_id=b.id
+order by id
