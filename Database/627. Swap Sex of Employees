@@ -1,0 +1,12 @@
+update salary set sex = 
+case
+when sex='m' then 'f'
+else 'm'
+end
+
+-- R1
+update salary 
+set sex='f'
+where id in (select id where sex='m'),
+sex='m'
+where id in (select id where sex='f')

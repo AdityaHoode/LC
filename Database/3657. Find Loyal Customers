@@ -1,0 +1,36 @@
+with base_filter as (
+    select 
+    customer_id,
+    datediff(max(transaction_date), min(transaction_date)) as active_period
+    from customer_transactions
+    group by customer_id
+    having count(transaction_id)>=3
+),
+base as (
+    select *
+    from customer_transactions
+    where customer_id in (
+        select 
+        customer_id
+        from base_filter
+        where active_period>=30
+    )
+),
+c1 as (
+    select 
+    *,
+    (sum(case when transaction_type='refund' then 1 else 0 end)/count(*))*100 as refund_rate
+    from base 
+    group by customer_id
+)
+select customer_id from c1 where refund_rate<20.00
+
+-- R1
+select
+customer_id
+from customer_transactions
+group by customer_id
+having sum(case when transaction_type='purchase' then 1 else 0 end)>=3
+and datediff(max(transaction_date),min(transaction_date))>=30
+and sum(case when transaction_type='refund' then 1 else 0 end)/count(*)<0.2
+order by 1
