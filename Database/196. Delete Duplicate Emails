@@ -1,0 +1,39 @@
+with c1 as (
+    select 
+    min(id) as id
+    from 
+    person
+    group by email
+),
+c2 as 
+(
+    select * from person
+)
+delete from c2 where c2.id <> c1.id
+
+-- R1
+delete from person
+where id not in (
+    select
+    id 
+    from (
+        select
+        id,
+        row_number() over(partition by email order by id asc) as rn
+        from person
+    ) a
+    where rn=1
+)
+
+delete from person
+where id not in (
+    select
+    min(id) as id
+    from person
+    group by email
+)
+
+delete a from person a
+inner join person b
+on a.email=b.email
+where a.id>b.id

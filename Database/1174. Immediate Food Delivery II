@@ -11,3 +11,18 @@ c2 as
     select count(distinct customer_id) as ttl_cnt from delivery
 )
 select round(imm_cnt/ttl_cnt * 100,2) as immediate_percentage from (select count(*) as imm_cnt from c1) a join c2
+
+-- R1
+with base as (
+    select * from delivery a where exists (
+        select
+        customer_id
+        from delivery b
+        where a.customer_id=b.customer_id
+        group by b.customer_id
+        having order_date=min(b.order_date)
+    )
+)
+select
+round((sum(case when order_date=customer_pref_delivery_date then 1 else 0 end)/count(*))*100,2) as immediate_percentage
+from base
