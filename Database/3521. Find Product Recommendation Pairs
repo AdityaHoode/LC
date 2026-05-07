@@ -1,0 +1,62 @@
+with c1 as 
+(
+    select 
+    a.user_id, a.product_id as p1, b.product_id as p2
+    from productpurchases a
+    join productpurchases b
+    on a.user_id=b.user_id
+    where a.product_id<b.product_id
+),
+c2 as
+(
+    select 
+    p1
+    ,p2
+    ,count(*) as count
+    from c1
+    group by p1, p2
+    having count(*)>=3
+),
+c3 as 
+(
+    select
+    b.p1 as product1_id,
+    b.p2 as product2_id,
+    a.category as product1_category,
+    c.category as product2_category,
+    count as customer_count
+    from productinfo a
+    left join c2 b
+    on a.product_id=b.p1
+    right join productinfo c
+    on c.product_id=b.p2
+)
+select * from c3
+where customer_count is not null
+order by customer_count desc, product1_id, product2_id
+
+-- R1
+select
+p1 as product1_id,
+p2 as product2_id,
+b.category as product1_category,
+c.category as product2_category,
+count(*) as customer_count
+from (
+    select
+    distinct
+    a.user_id,
+    a.product_id as p1,
+    b.product_id as p2
+    from productpurchases a
+    inner join productpurchases b
+    on a.user_id=b.user_id
+    where a.product_id<b.product_id
+) a
+inner join productinfo b
+on a.p1=b.product_id
+inner join productinfo c
+on a.p2=c.product_id
+group by product1_id,product2_id
+having customer_count>=3
+order by 5 desc, 1, 2
