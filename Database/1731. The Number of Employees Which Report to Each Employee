@@ -1,0 +1,56 @@
+with mgs as (
+select
+*
+from 
+employees
+where employee_id in (select distinct reports_to from employees)),
+cnt as (
+    select
+    reports_to, 
+    count(*) as reports_count,
+    round(avg(age*1.0),0)as average_age
+    from employees
+    where reports_to is not null
+    group by reports_to
+)
+select 
+a.employee_id,
+name,
+reports_count,
+average_age
+from
+mgs a
+inner join cnt b
+on a.employee_id=b.reports_to
+order by a.employee_id
+
+-- R1
+select 
+a.employee_id,
+name,
+reports_count,
+average_age
+from (
+    select
+    reports_to as employee_id,
+    count(*) as reports_count,
+    round(avg(age)) as average_age
+    from employees
+    where reports_to is not null
+    group by reports_to
+) a
+inner join employees b
+on a.employee_id=b.employee_id
+order by 1
+
+-- Recommended
+select
+a.employee_id,
+a.name,
+count(*) as reports_count,
+round(avg(b.age)) as average_age
+from employees a
+inner join employees b
+on a.employee_id=b.reports_to
+group by a.employee_id
+order by 1
