@@ -1,0 +1,10 @@
+select
+tweet_id
+from tweets
+where length(content)>15
+
+-- R1
+select
+tweet_id
+from tweets
+where length(content)>15
