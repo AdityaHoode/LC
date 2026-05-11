@@ -1,0 +1,45 @@
+with base as (
+    select * from stadium where people >= 100
+),
+c1 as (
+    select
+    *,
+    row_number() over (order by id) as rn,
+    id-row_number() over (order by id) as group_id
+    from base
+),
+c2 as (
+    select 
+    group_id
+    from c1
+    group by group_id
+    having count(*)>=3
+)
+select 
+id,
+visit_date,
+people
+from c1
+where group_id in (select group_id from c2)
+
+-- R1
+with base as (
+    select
+    *,
+    id-row_number() over () as rn
+    from stadium
+    where people>=100
+)
+select 
+id,
+visit_date,
+people
+from base a
+where exists (
+    select
+    1
+    from base b
+    where a.rn=b.rn
+    group by rn
+    having count(*)>=3
+)
