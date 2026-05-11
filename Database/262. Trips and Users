@@ -1,0 +1,63 @@
+with drivers as (
+    select *
+    from users 
+    where role='driver'
+    and banned='No'
+),
+clients as (
+    select *
+    from users 
+    where role='client'
+    and banned='No'
+),
+base as (
+    select 
+    request_at as Day,
+    round(sum(case when status like '%cancelled%' then 1 else 0 end)/count(*),2) * 1.00 as `Cancellation Rate`
+    from trips a
+    left join drivers b
+    on a.driver_id=b.users_id
+    left join clients c
+    on a.client_id=c.users_id
+    where b.users_id is not null and c.users_id is not null
+    group by request_at
+)
+select * from base
+where Day between '2013-10-01' and '2013-10-03'
+
+-- R1
+with base as (
+    select
+    *
+    from trips
+    where (client_id,driver_id) in (
+        select a.users_id,b.users_id from
+        (select users_id from users where role='client' and banned='No') a
+        cross join
+        (select users_id from users where role='driver' and banned='No') b
+    ) 
+    and request_at between '2013-10-01' and '2013-10-03'
+),
+c1 as (
+    select 
+    request_at as Day,
+    round(sum(case when status like '%cancelled%' then 1 else 0 end)/count(*),2) as `Cancellation Rate`
+    from base
+    group by 1
+)
+select * from c1
+
+select
+request_at as Day,
+round(sum(case when status like '%cancelled%' then 1 else 0 end)/count(*),2) as `Cancellation Rate`
+from trips a
+join users b
+    on a.client_id = b.users_id
+    and b.role = 'client'
+    and b.banned = 'No'
+join users c
+    on a.driver_id = c.users_id
+    and c.role = 'driver'
+    and c.banned = 'No'
+where request_at between '2013-10-01' and '2013-10-03'
+group by request_at
