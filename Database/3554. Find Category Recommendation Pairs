@@ -1,0 +1,105 @@
+with base_pi as (
+    select
+    distinct
+    a.product_id as p1,
+    b.product_id as p2
+    from productinfo a
+    join productinfo b
+    where a.category<b.category 
+),
+c1 as (
+    select
+    a.user_id as u,
+    a.product_id as p1,
+    b.product_id as p2
+    from productpurchases a
+    join productpurchases b
+    where (a.product_id,b.product_id) in (select p1,p2 from base_pi) 
+    and a.user_id=b.user_id
+),
+c2 as (
+    select
+    a.u,
+    b.category as ct1,
+    c.category as ct2
+    from c1 a
+    left join productinfo b
+    on a.p1=b.product_id
+    left join productinfo c
+    on a.p2=c.product_id
+)
+select
+ct1 as category1,
+ct2 as category2,
+count(distinct u) as customer_count
+from c2
+group by ct1,ct2
+having customer_count>=3
+order by customer_count desc, category1, category2
+
+-- R1
+with base as (
+    select 
+    a.*,
+    category
+    from productpurchases a
+    inner join productinfo b
+    on a.product_id=b.product_id
+),
+c1 as (
+    select
+    distinct
+    a.user_id,
+    a.category as category1,
+    b.category as category2
+    from base a
+    inner join base b
+    on a.user_id=b.user_id
+    where (a.category,b.category) in (
+        select 
+        distinct
+        a.category as c1,
+        b.category as c2
+        from productinfo a
+        inner join productinfo b
+        on a.category<b.category
+    )
+)
+select 
+category1,
+category2,
+count(*) as customer_count
+from c1
+group by 1,2
+having customer_count>=3
+order by 3 desc, 1, 2
+
+-- Recommended
+with base as (
+    select 
+    a.*,
+    category
+    from productpurchases a
+    inner join productinfo b
+    on a.product_id=b.product_id
+),
+c1 as (
+    select
+    distinct
+    a.user_id,
+    a.category as category1,
+    b.category as category2
+    from base a
+    inner join base b
+    on a.user_id=b.user_id
+    where a.category<b.category
+)
+select 
+category1,
+category2,
+count(*) as customer_count
+from c1
+group by 1,2
+having customer_count>=3
+order by 3 desc, 1, 2
+

@@ -1,0 +1,30 @@
+select 
+b.name as Department,
+a.name as Employee,
+salary as Salary 
+from (
+    select
+    *,
+    dense_rank() over (partition by departmentid order by salary desc) as rk
+    from employee
+) a
+left join department b
+on a.departmentid=b.id
+where rk between 1 and 3
+
+-- R1
+select
+Department,
+Employee,
+Salary
+from (
+    select
+    b.name as Department,
+    a.name as Employee,
+    salary as Salary,
+    dense_rank() over (partition by a.departmentId order by salary desc) as dr
+    from employee a 
+    inner join department b
+    on a.departmentid=b.id
+) c
+where dr<=3
