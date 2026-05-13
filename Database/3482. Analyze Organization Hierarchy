@@ -1,0 +1,61 @@
+with recursive c1 as (
+    select 
+    employee_id,
+    manager_id,
+    1 as level
+    from employees
+    where manager_id is null
+    union
+    select 
+    a.employee_id,
+    a.manager_id,
+    b.level+1
+    from employees a
+    inner join c1 b
+    on b.employee_id=a.manager_id
+),
+c2 as (
+    select
+    employee_id,
+    manager_id,
+    salary
+    from employees 
+    where manager_id is not null
+    union
+    select
+    a.employee_id,
+    b.manager_id,
+    a.salary
+    from employees a
+    inner join c2 b
+    on a.manager_id=b.employee_id
+),
+c3 as (
+    select 
+    a.employee_id,
+    coalesce(team_size,0) as team_size,
+    coalesce(b.salary,0)+a.salary as budget
+    from employees a
+    left join
+    (
+        select
+        manager_id as employee_id, 
+        count(*) as team_size,
+        sum(salary) as salary
+        from c2
+        group by manager_id
+    ) b
+    on a.employee_id=b.employee_id
+)
+select
+a.employee_id,
+employee_name,
+level,
+team_size,
+budget
+from c1 a
+inner join c3 b
+on a.employee_id=b.employee_id
+inner join employees c
+on b.employee_id=c.employee_id
+order by level, budget desc, employee_name
