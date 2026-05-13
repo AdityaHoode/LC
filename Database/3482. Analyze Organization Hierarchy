@@ -59,3 +59,61 @@ on a.employee_id=b.employee_id
 inner join employees c
 on b.employee_id=c.employee_id
 order by level, budget desc, employee_name
+
+-- R1
+with recursive levels as (
+    select
+    employee_id,
+    1 as level
+    from employees
+    where manager_id is null
+
+    union all
+
+    select
+    a.employee_id,
+    level+1 as level
+    from employees a
+    inner join levels b
+    on a.manager_id=b.employee_id
+),
+heirarchy as (
+    select
+    employee_id,
+    manager_id,
+    salary
+    from employees
+    where manager_id is not null
+
+    union all
+
+    select 
+    a.employee_id,
+    b.manager_id,
+    a.salary
+    from heirarchy a
+    inner join employees b
+    on a.manager_id=b.employee_id
+    where b.manager_id is not null
+),
+agg as (
+    select 
+    a.employee_id,
+    a.employee_name,
+    coalesce(count(b.manager_id),0) as team_size,
+    a.salary+coalesce(sum(b.salary),0) as budget
+    from employees a
+    left join heirarchy b
+    on a.employee_id=b.manager_id
+    group by 1
+)
+select 
+a.employee_id,
+b.employee_name,
+level,
+team_size,
+budget
+from levels a 
+inner join agg b
+on a.employee_id=b.employee_id
+order by 3, 5 desc, 2
