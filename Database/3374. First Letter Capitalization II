@@ -1,0 +1,119 @@
+with recursive c1 as (
+    select 
+        content_id,
+        content_text,
+        trim(substring_index(content_text, ' ', 1)) as word,
+        substring(content_text, length(substring_index(content_text, ' ', 1)) + 2) as rest,
+        1 as pos
+    from user_content
+
+    union all
+
+    select
+        content_id,
+        content_text,
+        trim(substring_index(rest, ' ', 1)),
+        substring(rest, length(substring_index(rest, ' ', 1)) + 2),
+        pos + 1
+    from c1
+    where rest is not null and rest <> ''
+),
+c2 as (
+    select 
+    content_id,
+    content_text,
+    pos,
+    case 
+        when regexp_like(word, '^[a-zA-Z]+-{1}[a-zA-Z]+$')
+        then concat(
+            upper(left(substring_index(word, '-', 1), 1)),
+            lower(substring(substring_index(word, '-', 1),2)),
+            '-',
+            upper(left(substring_index(word, '-', -1), 1)),
+            lower(substring(substring_index(word, '-', -1),2))
+        )
+        else concat(
+            upper(left(word, 1)),
+            lower(substring(word,2))
+        ) 
+    end as new_word
+    from c1
+)
+select
+content_id,
+content_text as original_text,
+group_concat(new_word order by pos separator ' ') as converted_text
+from c2
+group by content_id
+
+-- R1
+with recursive cte as (
+    select
+    content_id,
+    content_text as remaining_text,
+    substring_index(content_text,' ',1) as word,
+    1 as ord
+    from user_content
+
+    union all
+
+    select
+    content_id,
+    trim(
+        substring(
+            remaining_text, length(word)+1
+        )
+    ) as remaining_text,
+    substring_index(
+        trim(
+            substring(
+                remaining_text, length(word)+1
+            )
+        ),' ',1
+    ) as word,
+    ord+1 as ord
+    from cte
+    where remaining_text like '% %'
+),
+c1 as (
+    select
+    content_id,
+    remaining_text,
+    concat(
+        upper(substring(word,1,1)),
+        lower(substring(word,2))
+    ) as word,
+    ord
+    from cte
+),
+c2 as (
+    select
+    content_id,
+    remaining_text,
+    case 
+        when regexp_like(word, '^[a-zA-Z0-9]+-{1}[a-zA-Z0-9]+$') 
+            then concat(
+                substring_index(word,'-',1),
+                '-',
+                upper(substring(substring_index(word,'-',-1),1,1)),
+                lower(substring(substring_index(word,'-',-1),2))
+            )
+            else word
+    end as word,
+    ord
+    from c1  
+),
+c3 as (
+    select
+    content_id,
+    group_concat(word order by ord separator ' ') as converted_text
+    from c2
+    group by content_id
+)
+select 
+a.content_id,
+content_text as original_text,
+converted_text 
+from c3 a
+inner join user_content b
+on a.content_id=b.content_id
