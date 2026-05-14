@@ -1,0 +1,35 @@
+with c1 as
+(
+    select 
+    user_id,
+    count(*) as ttl
+    from 
+    confirmations
+    group by user_id
+),
+c2 as 
+(
+    select
+    user_id,
+    count(*) as cttl
+    from confirmations
+    where action='confirmed'
+    group by user_id
+)
+select 
+a.user_id,
+coalesce(round(coalesce(cttl,0)/coalesce(ttl,0), 2),0) as confirmation_rate 
+from signups a 
+left join c1 b
+on a.user_id=b.user_id
+left join c2 c
+on a.user_id=c.user_id
+
+-- R1
+select
+a.user_id,
+round(sum(case when action='confirmed' then 1 else 0 end)/count(*),2) as confirmation_rate
+from signups a
+left join confirmations b
+on a.user_id=b.user_id
+group by a.user_id
