@@ -16,9 +16,14 @@ s=[]
 #     s.append(l[i])
 #     i+=1
 
-for x in l:
-    print(s)
-    while s and s[-1]<x:
-        s.pop()
-    s.append(x)
-print(s)
+# for x in l:
+#     print(s)
+#     while s and s[-1]<x:
+#         s.pop()
+#     s.append(x)
+# print(s)
+
+if s:
+    print(True)
+else:
+    print(False)
