@@ -1,0 +1,71 @@
+with base as
+(
+    select 
+    driver_id,
+    avg(case when half='FH' then fuel_efficiency end) as first_half_avg,
+    avg(case when half='SH' then fuel_efficiency end) as second_half_avg
+    from
+    (
+        select
+        *,
+        distance_km/fuel_consumed as fuel_efficiency,
+        case
+            when month(trip_date) in (1,2,3,4,5,6) then 'FH'
+            else 'SH'
+        end as 'half'
+        from trips
+    ) a
+    group by driver_id
+    having count(distinct half)=2
+)
+select 
+a.driver_id,
+driver_name,
+round(first_half_avg,2) as first_half_avg,
+round(second_half_avg,2) as second_half_avg,
+round(second_half_avg-first_half_avg,2) as efficiency_improvement
+from base a
+inner join drivers b
+on a.driver_id=b.driver_id
+where round(second_half_avg-first_half_avg,2)>0
+order by efficiency_improvement desc, driver_name
+
+-- R1
+with base as (
+    select
+        a.driver_id,
+        driver_name,
+        case when month(trip_date) <= 6 then 'fh' else 'sh' end as hy,
+        distance_km / fuel_consumed as fe
+    from trips a
+    inner join drivers b
+        on a.driver_id = b.driver_id
+),
+c1 as (
+    select *
+    from base
+    where driver_id in (
+        select driver_id
+        from base
+        group by 1
+        having count(distinct hy) = 2
+    )
+),
+agg as (
+    select
+        driver_id,
+        driver_name,
+        avg(case when hy = 'fh' then fe end) as first_half_avg,
+        avg(case when hy = 'sh' then fe end) as second_half_avg
+    from c1
+    group by 1,2
+)
+select
+    driver_id,
+    driver_name,
+    round(first_half_avg, 2) as first_half_avg,
+    round(second_half_avg, 2) as second_half_avg,
+    round(second_half_avg - first_half_avg, 2) as efficiency_improvement
+from agg
+where round(second_half_avg - first_half_avg, 2)>0
+order by 5 desc, 2;

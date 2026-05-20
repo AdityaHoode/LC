@@ -1,0 +1,47 @@
+select
+d.name as Department,
+a.name as Employee,
+salary as Salary
+from
+(
+select
+*,
+dense_rank() over (partition by departmentid order by salary desc) as salary_rank
+from employee
+) a
+left join department d
+on a.departmentid=d.id
+where salary_rank=1
+
+select 
+c.name as Department,
+a.name as Employee,
+a.salary as Salary
+from 
+employee a 
+inner join 
+(select
+departmentid, max(salary) as m_salary
+from employee
+group by departmentid) b
+on a.departmentid=b.departmentid
+and a.salary=b.m_salary
+left join department c
+on a.departmentid=c.id
+
+-- R1
+select
+Department,
+Employee,
+Salary
+from (
+    select
+    b.name as Department,
+    a.name as Employee,
+    salary as Salary,
+    dense_rank() over (partition by departmentid order by salary desc) as dr
+    from employee a
+    inner join department b
+    on a.departmentid=b.id
+) a
+where dr=1
