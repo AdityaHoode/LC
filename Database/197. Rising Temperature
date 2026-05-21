@@ -1,0 +1,43 @@
+select
+    Id
+from
+    (
+        select
+            *,
+            lag(temperature) over (
+                order by
+                    recordDate asc
+            ) as prev_temp,
+            datediff(
+                recordDate,
+                lag(recordDate) over (
+                    order by
+                        recordDate asc
+                )
+            ) as gap_day
+        from
+            weather
+    ) as subquery
+where
+    prev_temp - temperature < 0
+    and gap_day = 1
+
+-- R1
+select
+b.id
+from weather a
+inner join weather b
+on date_add(a.recorddate, interval 1 day)=b.recorddate
+where b.temperature>a.temperature
+
+-- select
+-- a.id as i1,
+-- b.id as i2,
+-- a.recorddate as r1,
+-- b.recorddate as r2,
+-- a.temperature as t1,
+-- b.temperature as t2
+-- from weather a
+-- inner join weather b
+-- on date_add(a.recorddate, interval 1 day)=b.recorddate
+-- where t2>t1
