@@ -1,0 +1,19 @@
+select
+    distinct author_id as id
+from
+    views
+where
+    author_id = viewer_id
+order by
+    id asc
+
+-- R1
+select
+a.viewer_id as id
+from views a
+inner join views b
+on a.viewer_id=b.author_id
+and a.author_id=b.author_id
+group by 1
+having count(*)>=1
+order by 1

@@ -1,0 +1,28 @@
+select b.product_name, sum(a.unit) as unit
+from 
+(select * from orders where order_date between '2020-02-01' and '2020-02-29') a
+inner join products b
+on a.product_id=b.product_id
+group by a.product_id
+having sum(a.unit) >= 100
+
+
+select b.product_name, sum(a.unit) as unit
+from 
+orders a
+inner join products b
+on a.product_id=b.product_id
+and a.order_date between '2020-02-01' and '2020-02-29'
+group by a.product_id
+having sum(a.unit) >= 100
+
+-- R1
+select
+product_name,
+sum(unit) as unit
+from orders a
+inner join products b
+on a.product_id=b.product_id
+where date_format(order_Date, '%m%Y')='022020'
+group by 1
+having sum(unit)>=100
