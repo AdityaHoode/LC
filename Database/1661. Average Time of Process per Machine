@@ -1,0 +1,44 @@
+with piv as (
+select
+machine_id, process_id,
+round(max(case 
+when activity_type='start' then timestamp
+end), 3) as start_t,
+round(max(case 
+when activity_type='end' then timestamp
+end), 3) as end_t
+from
+activity
+group by machine_id, process_id
+),
+dur as (
+    select *, end_t-start_t as duration from piv
+),
+res as (
+    select machine_id, round(avg(duration),3) as processing_time
+    from dur
+    group by machine_id
+)
+select * from res
+
+select a1.machine_id, round(avg(a2.timestamp - a1.timestamp), 3) as processing_time
+from Activity a1
+join Activity a2
+on a1.machine_id = a2.machine_id
+and a1.process_id = a2.process_id
+and a1.activity_type = 'start'
+and a2.activity_type = 'end'
+group by a1.machine_id 
+
+-- R1
+select 
+machine_id,
+round(avg(p_time),3) as processing_time
+from (
+    select
+    *,
+    timestamp-lag(timestamp) over (partition by machine_id, process_id order by timestamp) as p_time
+    from activity
+) a
+where p_time is not null
+group by 1
