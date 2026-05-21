@@ -1,0 +1,43 @@
+select 
+    stu.student_id, 
+    stu.student_name,
+    sub.subject_name, 
+    count(b.subject_name) as attended_exams 
+from 
+students stu
+cross join subjects sub
+left join examinations b
+    on stu.student_id = b.student_id
+    and sub.subject_name = b.subject_name
+group by 
+    stu.student_id, 
+    sub.subject_name
+order by 
+stu.student_id, 
+sub.subject_name
+
+-- R1
+with base as (
+    select
+    *
+    from students
+    join subjects 
+),
+c1 as (
+    select 
+    student_id,
+    subject_name,
+    count(*) as attended_exams
+    from examinations
+    group by 1,2
+)
+select
+a.student_id,
+a.student_name,
+a.subject_name,
+coalesce(attended_exams,0) as attended_exams
+from base a 
+left join c1 b
+on a.student_id=b.student_id
+and a.subject_name=b.subject_name
+order by 1,3
