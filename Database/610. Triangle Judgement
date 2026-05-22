@@ -1,0 +1,17 @@
+select 
+x,
+y,
+z,
+case  
+when x>y and x>z then if ((y+z)-x>0, 'Yes', 'No')
+when y>x and y>z then if ((x+z)-y>0, 'Yes', 'No')
+when z>y and z>x then if ((y+x)-z>0, 'Yes', 'No')
+else 'Yes'
+end as triangle
+from triangle
+
+-- R1
+select
+*,
+case when x+y>z and y+z>x and z+x>y then 'Yes' else 'No' end as triangle
+from triangle

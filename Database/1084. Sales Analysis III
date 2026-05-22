@@ -1,0 +1,28 @@
+select
+    a.product_id,
+    a.product_name
+from
+    product a
+    inner join sales b on a.product_id = b.product_id
+group by
+    b.product_id
+having
+    max(b.sale_Date) <= '2019-03-31'
+    and min(b.sale_Date) >= '2019-01-01'
+
+-- R1
+select
+distinct 
+a.product_id,
+product_name
+from sales a
+inner join product b
+on a.product_id=b.product_id
+where date_format(sale_date, '%m%Y') in ('012019','022019','032019')
+and a.product_id not in (
+    select
+    distinct 
+    product_id
+    from sales 
+    where date_format(sale_date, '%m%Y') not in ('012019','022019','032019')
+)
