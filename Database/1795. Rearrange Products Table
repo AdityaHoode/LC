@@ -1,0 +1,106 @@
+with s1 as
+(
+    select 
+    product_id,
+    max(
+        case
+        when store1 is not null then 'store1'
+        else null
+        end
+    )as store,
+    max(
+        case
+        when store1 is not null then store1
+        else null
+        end
+    )as price
+    from products 
+    group by product_id
+),
+s2 as
+(
+    select 
+    product_id,
+    max(
+        case
+        when store2 is not null then 'store2'
+        else null
+        end
+    )as store,
+    max(
+        case
+        when store2 is not null then store2
+        else null
+        end
+    )as price
+    from products 
+    group by product_id
+),
+s3 as
+(
+    select 
+    product_id,
+    max(
+        case
+        when store3 is not null then 'store3'
+        else null
+        end
+    )as store,
+    max(
+        case
+        when store3 is not null then store3
+        else null
+        end
+    )as price
+    from products 
+    group by product_id
+),
+res as (
+    select * from s1
+    union
+    select * from s2
+    union
+    select * from s3
+)
+select * from res where store is not null
+
+-- R1
+select
+*
+from (
+    select
+    product_id,
+    'store1' as store,
+    store1 as price
+    from products
+
+    union
+
+    select
+    product_id,
+    'store2' as store,
+    store2 as price
+    from products
+
+    union
+    
+    select
+    product_id,
+    'store3' as store,
+    store3 as price
+    from products
+) a
+where price is not null
+
+SELECT 
+    p.product_id, 
+    t.store, 
+    t.price
+FROM products p
+INNER JOIN LATERAL (
+    SELECT 'store1' AS store, p.store1 AS price
+    UNION ALL
+    SELECT 'store2', p.store2
+    UNION ALL
+    SELECT 'store3', p.store3
+) t ON t.price IS NOT NULL;
