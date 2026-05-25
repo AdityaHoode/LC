@@ -69,3 +69,26 @@ SELECT
 FROM ranked
 WHERE rnk = 1
 ORDER BY streak_length DESC, user_id;
+
+-- R1
+with base as (
+    select
+    *
+    from (
+        select
+        *,
+        datediff(action_date, lag(action_date,1,action_date) over (partition by user_id, action order by action_date)) as gap_days
+        from activity
+    ) a
+    where gap_days<=1
+)
+select
+user_id,
+action,
+count(*) as streak_length,
+min(action_date) as start_Date,
+max(action_date) as end_date
+from base 
+group by user_id, action
+having count(*)>=5
+order by 3 desc, 1

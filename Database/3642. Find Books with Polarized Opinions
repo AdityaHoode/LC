@@ -1,0 +1,66 @@
+with base as (
+    select *
+    from reading_sessions
+    where book_id in (
+        select book_id
+        from reading_sessions
+        group by book_id
+        having count(*)>=5
+    )
+),
+c1 as (
+    select
+    book_id,
+    sum(case when session_rating>=4 then 1 else 0 end) as gte4cnt,
+    sum(case when session_rating<=2 then 1 else 0 end) as lte2cnt,
+    max(session_rating) as highest_rating,
+    min(session_rating) as lowest_rating,
+    max(session_rating)-min(session_rating) as rating_spread,
+    sum(case when session_rating>=4 then 1 when session_rating<=2 then 1 else 0 end)/count(*) as polarization_score
+    from base
+    group by book_id
+),
+c2 as (
+    select 
+    a.book_id,
+    title,
+    author,
+    genre,
+    pages,
+    rating_spread,
+    round(polarization_score,2) as polarization_score
+    from (
+        select 
+        book_id,
+        rating_spread,
+        polarization_score 
+        from c1 
+        where gte4cnt>=1 
+        and lte2cnt>=1
+    ) a
+    left join books b
+    on a.book_id=b.book_id
+)
+select * from c2
+where polarization_score >= 0.6
+order by polarization_score desc, title desc
+
+-- R1
+select
+a.book_id,
+title,
+author,
+genre,
+pages,
+max(session_rating)-min(session_rating) as rating_spread,
+round((sum(case when session_rating>=4 then 1 else 0 end)+sum(case when session_rating<=2 then 1 else 0 end))/count(*),2) as polarization_score
+from reading_sessions a
+inner join books b
+on a.book_id=b.book_id
+group by 1
+having 
+sum(case when session_rating>=4 then 1 else 0 end)>=1
+and sum(case when session_rating<=2 then 1 else 0 end)>=1
+and count(*)>=5
+and polarization_score>=0.6
+order by 7 desc, 2 desc
