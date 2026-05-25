@@ -1,0 +1,34 @@
+select 
+a.book_id
+,title
+,author
+,genre
+,publication_year
+,count(*) as current_borrowers 
+from  
+borrowing_records a
+left join
+library_books b
+on a.book_id=b.book_id
+where a.return_date is null
+group by a.book_id
+having current_borrowers=max(b.total_copies)
+order by current_borrowers desc, title asc
+
+-- R1
+-- R1
+select
+a.book_id, title, author, genre, publication_year, current_borrowers 
+from 
+library_books a
+inner join (
+    select
+    book_id,
+    count(*) as current_borrowers
+    from borrowing_records
+    where return_date is NULL
+    group by book_id
+) b
+on a.book_id=b.book_id
+where total_copies=current_borrowers
+order by 6 desc, 2 
