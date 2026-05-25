@@ -1,0 +1,80 @@
+with base as (
+    select 
+    *,
+    case when date_format(order_timestamp, '%H.%m') between 11 and 14 or date_format(order_timestamp, '%H.%m') between 18 and 21 then 1 else 0 end as peak
+    from restaurant_orders
+),
+c1 as (
+    select *
+    from base 
+    where customer_id in (
+        select customer_id 
+        from base
+        group by customer_id
+        having count(*)>=3
+        and sum(case when order_rating is not null then 1 else 0 end)>=count(*)/2
+        and sum(case when peak=1 then 1 else 0 end)>=0.6*count(*)
+        and round(avg(case when order_rating is not null then order_rating end),2)>=4.0
+    )
+),
+c2 as (
+    select 
+    customer_id,
+    count(*) as total_orders,
+    round(sum(case when peak=1 then 1 else 0 end)/count(*)*100) as peak_hour_percentage,
+    round(avg(case when order_rating is not null then order_rating end),2) as average_rating
+    from c1
+    group by customer_id
+    order by average_rating desc, customer_id desc
+)
+select *
+from c2
+
+-- R1
+select
+customer_id,
+count(*) as total_orders,
+round((sum(
+    case 
+        when (
+            cast(time_format(order_timestamp, '%H%i') as unsigned)>=1100 
+            and cast(time_format(order_timestamp, '%H%i') as unsigned)<=1400
+        ) or (
+            cast(time_format(order_timestamp, '%H%i') as unsigned)>=1800 
+            and cast(time_format(order_timestamp, '%H%i') as unsigned)<=2100
+        )
+        then 1 
+        else 0
+        end
+)/count(*))*100) as peak_hour_percentage,
+round(avg(order_rating),2) as average_rating
+from restaurant_orders
+group by 1
+having total_orders>=3
+and peak_hour_percentage>60
+and average_rating>=4.0
+and sum(case when order_rating is not null then 1 else 0 end)/total_orders>=0.5
+order by 4 desc, 1 desc
+
+select
+customer_id,
+count(*) as total_orders,
+round((sum(
+    case 
+        when (
+            time(order_timestamp) between '11:00:00' and '14:00:00'
+        ) or (
+            time(order_timestamp) between '18:00:00' and '21:00:00'
+        )
+        then 1 
+        else 0
+        end
+)/count(*))*100) as peak_hour_percentage,
+round(avg(order_rating),2) as average_rating
+from restaurant_orders
+group by 1
+having total_orders>=3
+and peak_hour_percentage>60
+and average_rating>=4.0
+and sum(case when order_rating is not null then 1 else 0 end)/total_orders>=0.5
+order by 4 desc, 1 desc

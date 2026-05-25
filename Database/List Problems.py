@@ -249,17 +249,6 @@ purely_pandas_problems_list = [
     "2889. Reshape Data: Pivot",
     "2890. Reshape Data: Melt",
     "2891. Method Chaining",
-    "3617. Find Students with Study Spiral Pattern",
-    "3626. Find Stores with Inventory Imbalance",
-    "3642. Find Books with Polarized Opinions",
-    "3657. Find Loyal Customers",
-    "3673. Find Zombie Sessions",
-    "3705. Find Golden Hour Customers",
-    "3716. Find Churn Risk Customers",
-    "3764. Most Common Course Pairs",
-    "3793. Find Users with High Token Usage",
-    "3808. Find Emotionally Consistent Users",
-    "3832. Find Users with Persistent Behavior Patterns"
 ]
 
 # Get actual files from folder
