@@ -1,0 +1,22 @@
+with base as (
+    select
+    *,
+    lead(course_name,1,course_name) over (partition by user_id order by completion_date) as nxt
+    from course_completions
+    where user_id in (
+        select
+        user_id
+        from course_completions
+        group by 1
+        having count(*)>=5
+        and avg(course_rating)>=4
+    ) 
+)
+select
+course_name as first_course,
+nxt as second_course,
+count(*) as transition_count
+from base
+where course_name<>nxt
+group by 1,2
+order by 3 desc, 1, 2
