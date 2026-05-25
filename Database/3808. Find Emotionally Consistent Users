@@ -1,0 +1,57 @@
+with base as (
+    select
+    *
+    from reactions
+    where user_id in (
+        select user_id
+        from reactions
+        group by user_id
+        having count(distinct content_id)>=5
+    )
+),
+c1 as (
+    select 
+    user_id,
+    reaction,
+    count(*) as rcnt
+    from base
+    group by user_id, reaction
+),
+c2 as (
+    select 
+    *,
+    round(rcnt/sum(rcnt) over (partition by user_id),2) as reaction_ratio 
+    from c1
+),
+c3 as (
+    select user_id,
+    reaction as dominant_reaction,
+    reaction_ratio
+    from c2 where reaction_ratio>0.6
+)
+select * from c3
+order by reaction_ratio desc, user_id
+
+-- R1
+select
+a.user_id,
+reaction as dominant_reaction,
+round(rc/tc,2) as reaction_ratio
+from (
+    select
+    user_id,
+    count(*) as tc
+    from reactions
+    group by 1
+    having count(*)>=5
+) a inner join (
+    select
+    user_id,
+    reaction,
+    count(*) as rc
+    from reactions
+    group by 1,2
+) b
+on a.user_id=b.user_id
+where rc/tc>=0.6
+order by 3 desc, 1
