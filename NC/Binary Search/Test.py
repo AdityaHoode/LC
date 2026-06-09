@@ -24,6 +24,47 @@
 # print(math.ceil(25/11))
 # print((25+11-1)//11)
 
-num=1234
-for n in map(int, str(num)):
-    print(n)
+# num=1234
+# for n in map(int, str(num)):
+#     print(n)
+
+key="alice"
+value="happy"
+timestamp=1
+# d=dict()
+# d[key]={}
+# d[key][timestamp]=value
+# print(d)    
+
+from collections import defaultdict
+dd=defaultdict(dict)
+dd[key][timestamp]=value
+dd[key][2]="sad"
+dd[key][1]="update"
+print(list(dd[key].keys()))
+
+# nums=[10,20,30]
+# target=5 # 0 0 -1
+# # target=15 # 1 0 0
+# # target=25 # 2 2 1
+# # target=35 # 3 2 2
+# l,r=0,len(nums)-1
+# while l<=r:
+#     m=(l+r)//2
+#     if target>nums[m]:
+#         l=m+1
+#     elif target<nums[m]:
+#         r=m-1
+#     else:
+#         print(f"Found: {nums[m]}")
+# print(l,m,r)
+
+
+# if not self.time_map[key].get(timestamp, False):
+#                 recent_timestamp=max(self.time_map[key])
+#                 if recent_timestamp<=timestamp:
+#                     return self.time_map[key][recent_timestamp]
+#                 else:
+#                     return ""
+#             else:
+#                 return self.time_map[key][timestamp]
