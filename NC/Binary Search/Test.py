@@ -45,9 +45,9 @@ print(list(dd[key].keys()))
 
 # nums=[10,20,30]
 # target=5 # 0 0 -1
-# # target=15 # 1 0 0
-# # target=25 # 2 2 1
-# # target=35 # 3 2 2
+# target=15 # 1 0 0
+# target=25 # 2 2 1
+# target=35 # 3 2 2
 # l,r=0,len(nums)-1
 # while l<=r:
 #     m=(l+r)//2
